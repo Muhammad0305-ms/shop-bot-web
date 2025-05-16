@@ -108,8 +108,13 @@
                 document.getElementByI("error").innerText = "Ошибка в немере телефона!";
                 return;
             }
+            let data = {
+                name: name,
+                email: email,
+                phone: phone
+            }
 
-            tg.sendData('');
+            tg.sendData('JSON.stringify(data)');
             tg.close();
         });
     </script>
