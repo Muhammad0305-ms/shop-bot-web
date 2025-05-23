@@ -1,3 +1,4 @@
+
 let tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -84,6 +85,7 @@ document.getElementById('send').addEventListener('click', () => {
     order: cart,
     total
   };
+  console.log(order); // проверка данных перед отправкой
   tg.sendData(JSON.stringify(order));
   tg.close();
 });
