@@ -3,75 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Чайхана ЕВРОАЗИЯ</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-
-    #main {
-      max-width: 500px;
-      margin: 30px auto;
-      background-color: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    h1 {
-      color: #333;
-    }
-  </style>
+  <title>Меню Чайхана</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="main">
-        <h1>Добро пожаловать в Чайхану ЕВРОАЗИЯ ☕</h1>
-        <p>Выберите блюдо для добавления в корзину:</p>
-        <div id="menu"></div>
+  <div id="app">
+    <h1>Меню Чайхана ЕВРОАЗИЯ</h1>
+    <div id="categories"></div>
+    <div id="dishes"></div>
+    <div id="cart" style="display: none">
+      <h2>Корзина</h2>
+      <ul id="cart-list"></ul>
+      <p id="total"></p>
+      <input id="user_name" placeholder="Имя">
+      <input id="user_phone" placeholder="Телефон">
+      <button id="send">Оформить заказ</button>
     </div>
+  </div>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    const menu = [
-      { name: "Плов", price: 450, img: "https://cdn-icons-png.flaticon.com/512/2917/2917990.png" },
-      { name: "Шурпа", price: 300, img: "https://cdn-icons-png.flaticon.com/512/707/707682.png" },
-      { name: "Чак-чак", price: 150, img: "https://cdn-icons-png.flaticon.com/512/1046/1046784.png" },
-      { name: "Айран", price: 100, img: "https://cdn-icons-png.flaticon.com/512/1046/1046781.png" }
-    ];
-  
-    const menuContainer = document.getElementById("menu");
-  
-    menu.forEach(dish => {
-      const card = document.createElement("div");
-      card.style.margin = "20px";
-      card.style.border = "1px solid #ddd";
-      card.style.borderRadius = "10px";
-      card.style.padding = "15px";
-      card.style.background = "#fff";
-      card.style.boxShadow = "0 0 8px rgba(0,0,0,0.05)";
-  
-      card.innerHTML = `
-        <img src="${dish.img}" width="100" height="100"><br>
-        <h3>${dish.name}</h3>
-        <p><b>${dish.price} ₽</b></p>
-        <button onclick="addToCart('${dish.name}', ${dish.price})">🛒 Добавить</button>
-      `;
-  
-      menuContainer.appendChild(card);
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const categories = {
+      "Первые блюда": [
+        { name: "Лагман", price: 350 },
+        { name: "Шурпа", price: 300 }
+      ],
+      "Вторые блюда": [
+        { name: "Плов", price: 450 }
+      ],
+      "Напитки": [
+        { name: "Чай", price: 80 },
+        { name: "Айран", price: 100 }
+      ]
+    };
+
+    let cart = [];
+
+    const categoriesDiv = document.getElementById('categories');
+    const dishesDiv = document.getElementById('dishes');
+    const cartDiv = document.getElementById('cart');
+    const cartList = document.getElementById('cart-list');
+    const totalEl = document.getElementById('total');
+    const sendBtn = document.getElementById('send');
+
+    Object.keys(categories).forEach(cat => {
+      const btn = document.createElement('button');
+      btn.innerText = cat;
+      btn.onclick = () => showDishes(cat);
+      categoriesDiv.appendChild(btn);
     });
-  
-    const cart = [];
-  
-    function addToCart(name, price) {
-      cart.push({ name, price });
-      alert(`Добавлено: ${name}`);
-      console.log(cart);
+
+    function showDishes(category) {
+      dishesDiv.innerHTML = '';
+      categories[category].forEach(dish => {
+        const item = document.createElement('div');
+        item.innerHTML = `<p>${dish.name} — ${dish.price} ₽</p>`;
+        const addBtn = document.createElement('button');
+        addBtn.innerText = "Добавить в корзину";
+        addBtn.onclick = () => addToCart(dish);
+        item.appendChild(addBtn);
+        dishesDiv.appendChild(item);
+      });
     }
+
+    function addToCart(dish) {
+      cart.push(dish);
+      updateCart();
+    }
+
+    function updateCart() {
+      cartDiv.style.display = 'block';
+      cartList.innerHTML = '';
+      const grouped = {};
+      cart.forEach(item => {
+        if (!grouped[item.name]) grouped[item.name] = { ...item, qty: 0 };
+        grouped[item.name].qty++;
+      });
+      let total = 0;
+      Object.values(grouped).forEach(item => {
+        const li = document.createElement('li');
+        li.innerText = `${item.name} × ${item.qty}`;
+        cartList.appendChild(li);
+        total += item.qty * item.price;
+      });
+      totalEl.innerText = `Итого: ${total} ₽`;
+    }
+
+    sendBtn.onclick = () => {
+      const data = {
+        name: document.getElementById('user_name').value,
+        phone: document.getElementById('user_phone').value,
+        order: cart,
+        total: cart.reduce((sum, item) => sum + item.price, 0)
+      };
+      tg.sendData(JSON.stringify(data));
+      tg.close();
+    };
   </script>
-  
 </body>
 </html>
