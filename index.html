@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Чайхана ЕВРОАЗИЯ</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    h2, h3 { margin-top: 0; }
+    button { margin: 5px; padding: 6px 12px; }
+    input { margin: 5px; padding: 6px; }
     .dish-card { background: white; border-radius: 10px; padding: 10px; margin: 10px 0; display: flex; gap: 10px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .dish-card img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; }
     .info { flex: 1; }
     .qty-controls { display: flex; align-items: center; gap: 10px; }
-    button { padding: 4px 10px; font-size: 18px; }
-    #categories button { margin: 5px; }
-    #cart { margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -30,18 +30,18 @@
 
     const menu = {
       "Первые блюда": [
-        { name: "Лагман", price: 350, image: "img/lagman.jpg" },
-        { name: "Шурпа", price: 300, image: "img/shurpa.jpg" }
+        { name: "Лагман", price: 350, image: "https://via.placeholder.com/80?text=Лагман" },
+        { name: "Шурпа", price: 300, image: "https://via.placeholder.com/80?text=Шурпа" }
       ],
       "Вторые блюда": [
-        { name: "Плов", price: 450, image: "img/plov.jpg" }
+        { name: "Плов", price: 450, image: "https://via.placeholder.com/80?text=Плов" }
       ],
       "Десерты": [
-        { name: "Чак-чак", price: 150, image: "img/chakchak.jpg" }
+        { name: "Чак-чак", price: 150, image: "https://via.placeholder.com/80?text=Чак-чак" }
       ],
       "Напитки": [
-        { name: "Чай", price: 80, image: "img/tea.jpg" },
-        { name: "Айран", price: 100, image: "img/ayran.jpg" }
+        { name: "Чай", price: 80, image: "https://via.placeholder.com/80?text=Чай" },
+        { name: "Айран", price: 100, image: "https://via.placeholder.com/80?text=Айран" }
       ]
     };
 
@@ -85,8 +85,8 @@
       if (item) {
         item.qty += delta;
         if (item.qty <= 0) {
-          const idx = cart.findIndex(i => i.name === name);
-          cart.splice(idx, 1);
+          const index = cart.findIndex(i => i.name === name);
+          cart.splice(index, 1);
         }
       } else if (delta > 0) {
         const { price, image } = findDishByName(name);
@@ -108,11 +108,9 @@
       const container = document.getElementById('cart');
       container.innerHTML = `<h3>Корзина</h3>`;
       let total = 0;
-      cart.forEach((item, index) => {
+      cart.forEach(item => {
         total += item.price * item.qty;
-        container.innerHTML += `
-          ${item.name} × ${item.qty} — ${item.price * item.qty}₽<br>
-        `;
+        container.innerHTML += `${item.name} × ${item.qty} — ${item.price * item.qty}₽<br>`;
       });
       container.innerHTML += `<p><strong>Итого: ${total}₽</strong></p>`;
     }
@@ -131,6 +129,7 @@
         order: cart,
         total
       };
+      console.log(order);
       tg.sendData(JSON.stringify(order));
       tg.close();
     });
