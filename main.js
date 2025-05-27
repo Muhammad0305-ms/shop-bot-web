@@ -17,7 +17,6 @@ const menu = {
       { name: "Айран", price: 100, image: "img/ayran.jpg" }
     ]
   };
-  
 
 const cart = [];
 
@@ -37,7 +36,10 @@ function renderDishes(category) {
   container.innerHTML = `<h3>${category}</h3>`;
   menu[category].forEach(dish => {
     const div = document.createElement('div');
-    div.innerHTML = `${dish.name} — ${dish.price}₽ <button onclick="addToCart('${dish.name}', ${dish.price})">Добавить</button>`;
+    div.innerHTML = `
+      <img src="${dish.image}" alt="${dish.name}" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;">
+      ${dish.name} — ${dish.price}₽ <button onclick="addToCart('${dish.name}', ${dish.price})">Добавить</button>
+    `;
     container.appendChild(div);
   });
 }
