@@ -1,25 +1,15 @@
-
 let tg = window.Telegram.WebApp;
 tg.expand();
 
-const menu = {
-  "Первые блюда": [
-    { name: "Лагман", price: 350 },
-    { name: "Шурпа", price: 300 }
-  ],
-  "Вторые блюда": [
-    { name: "Плов", price: 450 }
-  ],
-  "Десерты": [
-    { name: "Чак-чак", price: 150 }
-  ],
-  "Напитки": [
-    { name: "Чай", price: 80 },
-    { name: "Айран", price: 100 }
-  ]
-};
-
+let menu = {};
 const cart = [];
+
+fetch('menu.json')
+  .then(res => res.json())
+  .then(data => {
+    menu = data;
+    renderCategories();
+  });
 
 function renderCategories() {
   const container = document.getElementById('categories');
@@ -37,19 +27,43 @@ function renderDishes(category) {
   container.innerHTML = `<h3>${category}</h3>`;
   menu[category].forEach(dish => {
     const div = document.createElement('div');
-    div.innerHTML = `${dish.name} — ${dish.price}₽ <button onclick="addToCart('${dish.name}', ${dish.price})">Добавить</button>`;
+    div.className = 'dish-card';
+    div.innerHTML = `
+      <img src="${dish.image}" alt="${dish.name}" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;">
+      <div style="display: inline-block; margin-left: 10px;">
+        <strong>${dish.name}</strong><br>
+        ${dish.price}₽<br>
+        <button onclick="updateQty('${dish.name}', -1)">−</button>
+        <span id="qty-${dish.name}">0</span>
+        <button onclick="updateQty('${dish.name}', 1)">+</button>
+      </div>
+    `;
     container.appendChild(div);
   });
 }
 
-function addToCart(name, price) {
-  const existing = cart.find(item => item.name === name);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    cart.push({ name, price, qty: 1 });
+function updateQty(name, delta) {
+  const item = cart.find(i => i.name === name);
+  if (item) {
+    item.qty += delta;
+    if (item.qty <= 0) {
+      const index = cart.findIndex(i => i.name === name);
+      cart.splice(index, 1);
+    }
+  } else if (delta > 0) {
+    const { price, image } = findDishByName(name);
+    cart.push({ name, qty: 1, price, image });
   }
   renderCart();
+  const qtySpan = document.getElementById(`qty-${name}`);
+  if (qtySpan) qtySpan.textContent = cart.find(i => i.name === name)?.qty || 0;
+}
+
+function findDishByName(name) {
+  for (const cat in menu) {
+    const dish = menu[cat].find(d => d.name === name);
+    if (dish) return dish;
+  }
 }
 
 function renderCart() {
@@ -59,16 +73,10 @@ function renderCart() {
   cart.forEach((item, index) => {
     total += item.price * item.qty;
     container.innerHTML += `
-      ${item.name} × ${item.qty} — ${item.price * item.qty}₽ 
-      <button onclick="removeItem(${index})">Удалить</button><br>
+      ${item.name} × ${item.qty} — ${item.price * item.qty}₽<br>
     `;
   });
-  container.innerHTML += `<p>Итого: ${total}₽</p>`;
-}
-
-function removeItem(index) {
-  cart.splice(index, 1);
-  renderCart();
+  container.innerHTML += `<p><strong>Итого: ${total}₽</strong></p>`;
 }
 
 document.getElementById('send').addEventListener('click', () => {
@@ -89,5 +97,3 @@ document.getElementById('send').addEventListener('click', () => {
   tg.sendData(JSON.stringify(order));
   tg.close();
 });
-
-renderCategories();
