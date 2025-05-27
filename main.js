@@ -1,16 +1,27 @@
 let tg = window.Telegram.WebApp;
 tg.expand();
 
-let menu = {};
+
 const cart = [];
-
-fetch('menu.json')
-  .then(res => res.json())
-  .then(data => {
-    menu = data;
-    renderCategories();
-  });
-
+const menu = {
+    "Первые блюда": [
+      { name: "Лагман", price: 350, image: "https://via.placeholder.com/80?text=Лагман" },
+      { name: "Шурпа", price: 300, image: "https://via.placeholder.com/80?text=Шурпа" }
+    ],
+    "Вторые блюда": [
+      { name: "Плов", price: 450, image: "https://via.placeholder.com/80?text=Плов" }
+    ],
+    "Десерты": [
+      { name: "Чак-чак", price: 150, image: "https://via.placeholder.com/80?text=Чак-чак" }
+    ],
+    "Напитки": [
+      { name: "Чай", price: 80, image: "https://via.placeholder.com/80?text=Чай" },
+      { name: "Айран", price: 100, image: "https://via.placeholder.com/80?text=Айран" }
+    ]
+  };
+  
+  renderCategories();
+  
 function renderCategories() {
   const container = document.getElementById('categories');
   container.innerHTML = '';
