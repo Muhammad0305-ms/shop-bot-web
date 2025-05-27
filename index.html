@@ -1,107 +1,141 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Меню Чайхана</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Чайхана ЕВРОАЗИЯ</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    .dish-card { background: white; border-radius: 10px; padding: 10px; margin: 10px 0; display: flex; gap: 10px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .dish-card img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; }
+    .info { flex: 1; }
+    .qty-controls { display: flex; align-items: center; gap: 10px; }
+    button { padding: 4px 10px; font-size: 18px; }
+    #categories button { margin: 5px; }
+    #cart { margin-top: 20px; }
+  </style>
 </head>
 <body>
-  <div id="app">
-    <h1>Меню Чайхана ЕВРОАЗИЯ</h1>
-    <div id="categories"></div>
-    <div id="dishes"></div>
-    <div id="cart" style="display: none">
-      <h2>Корзина</h2>
-      <ul id="cart-list"></ul>
-      <p id="total"></p>
-      <input id="user_name" placeholder="Имя">
-      <input id="user_phone" placeholder="Телефон">
-      <button id="send">Оформить заказ</button>
-    </div>
-  </div>
+  <h2>Меню</h2>
+  <div id="categories"></div>
+  <div id="dishes"></div>
+  <div id="cart"></div>
+  <input type="text" id="user_name" placeholder="Ваше имя" />
+  <input type="text" id="user_phone" placeholder="Телефон" />
+  <button id="send">Оформить заказ</button>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    const tg = window.Telegram.WebApp;
+    let tg = window.Telegram.WebApp;
     tg.expand();
 
-    const categories = {
+    const menu = {
       "Первые блюда": [
-        { name: "Лагман", price: 350 },
-        { name: "Шурпа", price: 300 }
+        { name: "Лагман", price: 350, image: "img/lagman.jpg" },
+        { name: "Шурпа", price: 300, image: "img/shurpa.jpg" }
       ],
       "Вторые блюда": [
-        { name: "Плов", price: 450 }
+        { name: "Плов", price: 450, image: "img/plov.jpg" }
+      ],
+      "Десерты": [
+        { name: "Чак-чак", price: 150, image: "img/chakchak.jpg" }
       ],
       "Напитки": [
-        { name: "Чай", price: 80 },
-        { name: "Айран", price: 100 }
+        { name: "Чай", price: 80, image: "img/tea.jpg" },
+        { name: "Айран", price: 100, image: "img/ayran.jpg" }
       ]
     };
 
-    let cart = [];
+    const cart = [];
 
-    const categoriesDiv = document.getElementById('categories');
-    const dishesDiv = document.getElementById('dishes');
-    const cartDiv = document.getElementById('cart');
-    const cartList = document.getElementById('cart-list');
-    const totalEl = document.getElementById('total');
-    const sendBtn = document.getElementById('send');
+    function renderCategories() {
+      const container = document.getElementById('categories');
+      container.innerHTML = '';
+      for (const category in menu) {
+        const btn = document.createElement('button');
+        btn.textContent = category;
+        btn.onclick = () => renderDishes(category);
+        container.appendChild(btn);
+      }
+    }
 
-    Object.keys(categories).forEach(cat => {
-      const btn = document.createElement('button');
-      btn.innerText = cat;
-      btn.onclick = () => showDishes(cat);
-      categoriesDiv.appendChild(btn);
+    function renderDishes(category) {
+      const container = document.getElementById('dishes');
+      container.innerHTML = `<h3>${category}</h3>`;
+      menu[category].forEach(dish => {
+        const div = document.createElement('div');
+        div.className = 'dish-card';
+        div.innerHTML = `
+          <img src="${dish.image}" alt="${dish.name}" />
+          <div class="info">
+            <h4>${dish.name}</h4>
+            <p>${dish.price}₽</p>
+            <div class="qty-controls">
+              <button onclick="updateQty('${dish.name}', -1)">−</button>
+              <span id="qty-${dish.name}">0</span>
+              <button onclick="updateQty('${dish.name}', 1)">+</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateQty(name, delta) {
+      const item = cart.find(i => i.name === name);
+      if (item) {
+        item.qty += delta;
+        if (item.qty <= 0) {
+          const idx = cart.findIndex(i => i.name === name);
+          cart.splice(idx, 1);
+        }
+      } else if (delta > 0) {
+        const { price, image } = findDishByName(name);
+        cart.push({ name, qty: 1, price, image });
+      }
+      renderCart();
+      const qtySpan = document.getElementById(`qty-${name}`);
+      if (qtySpan) qtySpan.textContent = cart.find(i => i.name === name)?.qty || 0;
+    }
+
+    function findDishByName(name) {
+      for (const cat in menu) {
+        const dish = menu[cat].find(d => d.name === name);
+        if (dish) return dish;
+      }
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cart');
+      container.innerHTML = `<h3>Корзина</h3>`;
+      let total = 0;
+      cart.forEach((item, index) => {
+        total += item.price * item.qty;
+        container.innerHTML += `
+          ${item.name} × ${item.qty} — ${item.price * item.qty}₽<br>
+        `;
+      });
+      container.innerHTML += `<p><strong>Итого: ${total}₽</strong></p>`;
+    }
+
+    document.getElementById('send').addEventListener('click', () => {
+      const name = document.getElementById('user_name').value.trim();
+      const phone = document.getElementById('user_phone').value.trim();
+      if (name.length < 2 || phone.length < 5) {
+        alert('Введите корректные имя и телефон');
+        return;
+      }
+      const total = cart.reduce((sum, item) => sum + item.qty * item.price, 0);
+      const order = {
+        name,
+        phone,
+        order: cart,
+        total
+      };
+      tg.sendData(JSON.stringify(order));
+      tg.close();
     });
 
-    function showDishes(category) {
-      dishesDiv.innerHTML = '';
-      categories[category].forEach(dish => {
-        const item = document.createElement('div');
-        item.innerHTML = `<p>${dish.name} — ${dish.price} ₽</p>`;
-        const addBtn = document.createElement('button');
-        addBtn.innerText = "Добавить в корзину";
-        addBtn.onclick = () => addToCart(dish);
-        item.appendChild(addBtn);
-        dishesDiv.appendChild(item);
-      });
-    }
-
-    function addToCart(dish) {
-      cart.push(dish);
-      updateCart();
-    }
-
-    function updateCart() {
-      cartDiv.style.display = 'block';
-      cartList.innerHTML = '';
-      const grouped = {};
-      cart.forEach(item => {
-        if (!grouped[item.name]) grouped[item.name] = { ...item, qty: 0 };
-        grouped[item.name].qty++;
-      });
-      let total = 0;
-      Object.values(grouped).forEach(item => {
-        const li = document.createElement('li');
-        li.innerText = `${item.name} × ${item.qty}`;
-        cartList.appendChild(li);
-        total += item.qty * item.price;
-      });
-      totalEl.innerText = `Итого: ${total} ₽`;
-    }
-
-    sendBtn.onclick = () => {
-      const data = {
-        name: document.getElementById('user_name').value,
-        phone: document.getElementById('user_phone').value,
-        order: cart,
-        total: cart.reduce((sum, item) => sum + item.price, 0)
-      };
-      tg.sendData(JSON.stringify(data));
-      tg.close();
-    };
+    renderCategories();
   </script>
 </body>
 </html>
