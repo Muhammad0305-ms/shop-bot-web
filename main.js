@@ -2,21 +2,22 @@ let tg = window.Telegram.WebApp;
 tg.expand();
 
 const menu = {
-  "Первые блюда": [
-    { name: "Лагман", price: 350 },
-    { name: "Шурпа", price: 300 }
-  ],
-  "Вторые блюда": [
-    { name: "Плов", price: 450 }
-  ],
-  "Десерты": [
-    { name: "Чак-чак", price: 150 }
-  ],
-  "Напитки": [
-    { name: "Чай", price: 80 },
-    { name: "Айран", price: 100 }
-  ]
-};
+    "Первые блюда": [
+      { name: "Лагман", price: 350, image: "img/lagman.jpg" },
+      { name: "Шурпа", price: 300, image: "img/shurpa.jpg" }
+    ],
+    "Вторые блюда": [
+      { name: "Плов", price: 450, image: "img/plov.jpg" }
+    ],
+    "Десерты": [
+      { name: "Чак-чак", price: 150, image: "img/chakchak.jpg" }
+    ],
+    "Напитки": [
+      { name: "Чай", price: 80, image: "img/tea.jpg" },
+      { name: "Айран", price: 100, image: "img/ayran.jpg" }
+    ]
+  };
+  
 
 const cart = [];
 
